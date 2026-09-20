@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Início de ano — 3.º ano, EB do Cavaco</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#F4F5F0;
+  --tinta:#1B2420;
+  --tinta-suave:#5A6660;
+  --linha:#D6D9D0;
+  --verde:#1F5D4C;
+  --verde-claro:#E4EDE8;
+  --ocre:#C8761F;
+  --erro:#9A2B1E;
+  --branco:#FFFFFF;
+  --raio:12px;
+  --max:44rem;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--papel);color:var(--tinta);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:17px;line-height:1.55;
+}
+h1,h2,h3{font-weight:600;line-height:1.2;margin:0}
+.serif{font-family:"Instrument Serif",Georgia,serif;font-weight:400}
+a{color:var(--verde)}
+button{font:inherit;color:inherit}
+
+/* ---------- estrutura ---------- */
+.envolve{max-width:var(--max);margin:0 auto;padding:0 1.1rem 5rem}
+.topo{
+  position:sticky;top:0;z-index:20;background:var(--papel);
+  padding-top:calc(.9rem + env(safe-area-inset-top,0px));
+  border-bottom:1px solid var(--linha);
+}
+.topo .envolve{padding-bottom:.7rem}
+.marca{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.marca h1{font-family:"Instrument Serif",Georgia,serif;font-weight:400;font-size:1.65rem}
+.marca p{margin:0;color:var(--tinta-suave);font-size:.85rem}
+.barra{height:5px;background:var(--linha);border-radius:99px;margin-top:.8rem;overflow:hidden}
+.barra i{display:block;height:100%;background:var(--verde);width:0;transition:width .35s ease}
+.passo-conta{font-size:.8rem;color:var(--tinta-suave);margin-top:.5rem}
+
+/* ---------- capa ---------- */
+.capa{padding:2.5rem 0 1rem}
+.capa h2{font-family:"Instrument Serif",Georgia,serif;font-weight:400;font-size:2.4rem;line-height:1.05;margin-bottom:.8rem}
+.capa p{color:var(--tinta-suave);max-width:34rem}
+.lista-alunos{display:grid;gap:.5rem;margin-top:1.6rem}
+.aluno-bt{
+  display:flex;align-items:center;justify-content:space-between;gap:.8rem;
+  width:100%;text-align:left;background:var(--branco);border:1px solid var(--linha);
+  border-radius:var(--raio);padding:.95rem 1.05rem;cursor:pointer;
+}
+.aluno-bt:hover{border-color:var(--verde)}
+.aluno-bt span.marca-resp{font-size:.78rem;color:var(--verde);background:var(--verde-claro);padding:.15rem .5rem;border-radius:99px}
+
+/* ---------- campos ---------- */
+.seccao{padding:1.6rem 0 0}
+.seccao > h2{font-size:1.4rem;margin-bottom:.25rem}
+.seccao > p.ajuda{color:var(--tinta-suave);font-size:.92rem;margin:.2rem 0 1.2rem}
+.campo{margin-bottom:1.35rem}
+.campo > label.rotulo{display:block;font-weight:500;margin-bottom:.45rem}
+.campo .nota{display:block;font-weight:400;color:var(--tinta-suave);font-size:.85rem;margin-top:.15rem}
+input[type=text],input[type=tel],input[type=email],input[type=date],input[type=number],textarea,select{
+  width:100%;padding:.75rem .85rem;border:1px solid var(--linha);border-radius:10px;
+  background:var(--branco);font:inherit;color:inherit;
+}
+textarea{min-height:5.5rem;resize:vertical}
+input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-visible{
+  outline:3px solid var(--ocre);outline-offset:2px
+}
+.opcoes{display:flex;flex-wrap:wrap;gap:.5rem}
+.op{
+  border:1px solid var(--linha);background:var(--branco);border-radius:99px;
+  padding:.6rem 1rem;cursor:pointer;min-height:44px;
+}
+.op[aria-pressed=true]{background:var(--verde);border-color:var(--verde);color:#fff}
+.op.sim[aria-pressed=true]{background:var(--verde);border-color:var(--verde)}
+.op.nao[aria-pressed=true]{background:var(--tinta);border-color:var(--tinta)}
+.campo.falta input,.campo.falta textarea{border-color:var(--erro)}
+.msg-erro{color:var(--erro);font-size:.85rem;margin-top:.35rem}
+
+/* agregado */
+.familia{display:grid;gap:.55rem}
+.familia .linha{display:grid;grid-template-columns:5.5rem 1fr 2.6rem;gap:.5rem;align-items:center}
+.familia select{padding:.7rem .6rem}
+.bt-x{border:1px solid var(--linha);background:var(--branco);border-radius:10px;height:100%;min-height:44px;cursor:pointer;color:var(--erro)}
+.bt-leve{border:1px dashed var(--linha);background:transparent;border-radius:10px;padding:.65rem 1rem;cursor:pointer;color:var(--verde)}
+
+/* navegação */
+.nav{
+  position:sticky;bottom:0;background:var(--papel);border-top:1px solid var(--linha);
+  padding:.8rem 0 calc(.8rem + env(safe-area-inset-bottom,0px));margin-top:2rem;z-index:15;
+}
+.nav .envolve{display:flex;gap:.7rem;padding-bottom:0}
+.bt{border:1px solid var(--verde);background:var(--verde);color:#fff;border-radius:10px;
+  padding:.85rem 1.3rem;cursor:pointer;font-weight:500;min-height:48px;flex:1}
+.bt.sec{background:transparent;color:var(--verde)}
+.bt.escuro{background:var(--tinta);border-color:var(--tinta)}
+.bt[disabled]{opacity:.5;cursor:not-allowed}
+
+/* revisão */
+.revisao dl{display:grid;grid-template-columns:1fr;gap:.1rem;margin:0 0 1.2rem}
+.revisao .par{display:flex;justify-content:space-between;gap:1rem;padding:.45rem 0;border-bottom:1px solid var(--linha)}
+.revisao dt{color:var(--tinta-suave);font-size:.9rem}
+.revisao dd{margin:0;text-align:right;font-weight:500}
+.revisao h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+.confirma{display:flex;gap:.7rem;align-items:flex-start;background:var(--verde-claro);padding:1rem;border-radius:var(--raio)}
+.confirma input{margin-top:.25rem;width:1.15rem;height:1.15rem;flex:0 0 auto}
+
+/* estados */
+.fim{text-align:center;padding:4rem 0}
+.fim .selo{font-size:2.6rem}
+.aviso{background:#FBF1E4;border:1px solid #EBD6B6;border-radius:var(--raio);padding:.9rem 1rem;font-size:.92rem;margin:1rem 0}
+.oculto{display:none !important}
+
+/* ---------- professor ---------- */
+.prof-topo{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin:1.5rem 0 1rem}
+.abas{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.2rem}
+.aba{border:1px solid var(--linha);background:var(--branco);border-radius:99px;padding:.5rem .95rem;cursor:pointer;font-size:.9rem}
+.aba[aria-selected=true]{background:var(--tinta);color:#fff;border-color:var(--tinta)}
+table{width:100%;border-collapse:collapse;font-size:.85rem;background:var(--branco)}
+th,td{border:1px solid var(--linha);padding:.45rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--verde-claro);font-weight:600}
+.tabela-rolo{overflow-x:auto;border-radius:var(--raio)}
+.estado-linha{display:flex;justify-content:space-between;align-items:center;gap:.8rem;background:var(--branco);border:1px solid var(--linha);border-radius:10px;padding:.7rem .9rem;margin-bottom:.4rem}
+.pinta-falta{color:var(--erro)}
+.pinta-ok{color:var(--verde)}
+.acoes{display:flex;gap:.5rem;flex-wrap:wrap;margin:1rem 0}
+.bt-mini{border:1px solid var(--linha);background:var(--branco);border-radius:8px;padding:.45rem .8rem;cursor:pointer;font-size:.85rem}
+
+/* ---------- impressão ---------- */
+.folha{background:#fff;padding:1.4rem;border:1px solid var(--linha);border-radius:var(--raio);margin-bottom:1rem}
+.folha h2{font-family:"Instrument Serif",Georgia,serif;font-weight:400;font-size:1.5rem}
+.folha .cabeca{border-bottom:2px solid var(--tinta);padding-bottom:.5rem;margin-bottom:.9rem}
+.folha .cabeca p{margin:.15rem 0 0;font-size:.8rem;color:var(--tinta-suave)}
+.folha h3{font-size:.95rem;margin:1rem 0 .3rem;border-bottom:1px solid var(--linha);padding-bottom:.15rem}
+.folha .par{display:flex;gap:.6rem;padding:.16rem 0;font-size:.86rem}
+.folha .par b{font-weight:600;min-width:11rem;flex:0 0 auto}
+.assinatura{margin-top:1.6rem;font-size:.85rem}
+.assinatura .linhas{display:flex;gap:2rem;margin-top:2.2rem}
+.assinatura .linhas div{flex:1;border-top:1px solid var(--tinta);padding-top:.3rem;font-size:.78rem}
+
+@media print{
+  :root{--papel:#fff}
+  body{background:#fff;font-size:11pt}
+  .topo,.nav,.abas,.acoes,.prof-topo,.nao-imprime{display:none !important}
+  .envolve{max-width:none;padding:0}
+  .folha{border:0;border-radius:0;padding:0;margin:0;page-break-after:always}
+  .folha:last-child{page-break-after:auto}
+  table{font-size:9pt}
+  .tabela-rolo{overflow:visible}
+  @page{margin:14mm}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+</style>
+</head>
+<body>
+
+<!-- =================== CONFIGURAÇÃO =================== -->
+<script>
+const CONFIG = {
+
+  // 1) Cola aqui a configuração do teu projeto Firebase
+  //    (Consola Firebase > Definições do projeto > As tuas apps > Web)
+  firebase: {
+    apiKey: "AIzaSyAotgPOVJ1HpaPj4suXVpEy9gMVish0Pds",
+    authDomain: "inquerito-cavaco.firebaseapp.com",
+    projectId: "inquerito-cavaco",
+    storageBucket: "inquerito-cavaco.firebasestorage.app",
+    messagingSenderId: "403627528887",
+    appId: "1:403627528887:web:c7692f18c65d6152667332"
+  },
+
+  // 2) O e-mail com que fazes login (tem de ser criado em Authentication)
+  emailProfessor: "prof@cavaco.pt",
+
+  // 3) Identificação da turma
+  turma: "3.º ano",
+  escola: "EB do Cavaco — Agrupamento de Escolas de Santa Maria da Feira",
+  anoLetivo: "2026/2027",
+  professor: "Rui Santos",
+
+  // 4) Lista da turma. Na app aparece só o primeiro nome e a inicial do apelido.
+  alunos: [
+    { id: "a01", nome: "Amanda Rodrigues Juliano Manente" },
+    { id: "a02", nome: "André Martim Rocha Gomes" },
+    { id: "a03", nome: "Clara Reis Cardoso" },
+    { id: "a04", nome: "Duarte Soares Pinto" },
+    { id: "a05", nome: "Gabriel Gomes de Pinho" },
+    { id: "a06", nome: "Gonçalo Pereira da Silva" },
+    { id: "a07", nome: "Guilherme Rafael Cardoso Santos" },
+    { id: "a08", nome: "Lourenço Gomes Castanheira" },
+    { id: "a09", nome: "Matias Pimenta da Costa Reis" },
+    { id: "a10", nome: "Ricardo Luís Coelho Oliveira" },
+    { id: "a11", nome: "Rodrigo Albuquerque Ribeiro" },
+    // Aluno de teste — apagar esta linha antes de enviar o link aos pais
+    { id: "teste", nome: "Aluno Teste" }
+  ]
+};
+</script>
+
+<!-- =================== PERGUNTAS =================== -->
+<script>
+const ESCOLARIDADE = ["Menos que o 4.º ano","1.º ciclo (4.º ano)","2.º ciclo (6.º ano)","9.º ano","11.º ano","12.º ano","Curso médio","Curso superior"];
+const PARENTESCOS = ["Irmão","Irmã","Mãe","Pai","Avó","Avô","Tio","Tia","Padrasto","Madrasta","Primo(a)","Outro"];
+const DIAS = ["Segunda","Terça","Quarta","Quinta","Sexta"];
+
+const PASSOS = [
+ { id:"aluno", titulo:"O aluno", ajuda:"Dados que a escola precisa de ter no processo individual.",
+   campos:[
+    {k:"dataNasc", r:"Data de nascimento", t:"data", obrig:true},
+    {k:"numUtente", r:"N.º de utente de saúde", t:"texto"},
+    {k:"usf", r:"Centro de saúde ou USF", t:"texto"},
+    {k:"cc", r:"N.º de cartão de cidadão", t:"texto"},
+    {k:"nif", r:"N.º de contribuinte", t:"texto"},
+    {k:"escalao", r:"Escalão do abono", t:"escolha", ops:["A","B","C","Sem escalão"]},
+    {k:"ji", r:"Frequentou o jardim de infância?", t:"simnao"},
+    {k:"jiAnos", r:"Durante quantos anos?", t:"escolha", ops:["1","2","3","Mais de 3"], dep:{k:"ji",v:["Sim"]}}
+   ]},
+
+ { id:"pai", titulo:"O pai", campos:[
+    {k:"paiNome", r:"Nome", t:"texto"},
+    {k:"paiNasc", r:"Data de nascimento", t:"data"},
+    {k:"paiSit", r:"Situação", t:"escolha", ops:["Empregado","Desempregado","Doméstico","Reformado"]},
+    {k:"paiProf", r:"Profissão", t:"texto", dep:{k:"paiSit",v:["Empregado"]}},
+    {k:"paiEsc", r:"Habilitações", t:"escolha", ops:ESCOLARIDADE}
+   ]},
+
+ { id:"mae", titulo:"A mãe", campos:[
+    {k:"maeNome", r:"Nome", t:"texto"},
+    {k:"maeNasc", r:"Data de nascimento", t:"data"},
+    {k:"maeSit", r:"Situação", t:"escolha", ops:["Empregada","Desempregada","Doméstica","Reformada"]},
+    {k:"maeProf", r:"Profissão", t:"texto", dep:{k:"maeSit",v:["Empregada"]}},
+    {k:"maeEsc", r:"Habilitações", t:"escolha", ops:ESCOLARIDADE}
+   ]},
+
+ { id:"ee", titulo:"Encarregado de educação", ajuda:"Quem a escola contacta em primeiro lugar.",
+   campos:[
+    {k:"eeQuem", r:"Quem é o encarregado de educação?", t:"escolha", ops:["Mãe","Pai","Avó","Avô","Outro"], obrig:true},
+    {k:"eeOutro", r:"Qual o parentesco?", t:"texto", dep:{k:"eeQuem",v:["Outro"]}},
+    {k:"eeNome", r:"Nome completo", t:"texto", obrig:true},
+    {k:"eeNasc", r:"Data de nascimento", t:"data"},
+    {k:"eeTlm", r:"Telemóvel", t:"tel", obrig:true, nota:"É este o número usado em caso de urgência."},
+    {k:"eeTlm2", r:"Outro contacto", t:"tel"},
+    {k:"eeEmail", r:"E-mail", t:"email"},
+    {k:"eeMorada", r:"Morada", t:"area", obrig:true},
+    {k:"eeCP", r:"Código postal", t:"texto"},
+    {k:"eeSit", r:"Situação profissional", t:"escolha", ops:["Empregado(a)","Desempregado(a)","Doméstico(a)","Reformado(a)"], dep:{k:"eeQuem",v:["Avó","Avô","Outro"]}},
+    {k:"eeProf", r:"Profissão", t:"texto", dep:{k:"eeQuem",v:["Avó","Avô","Outro"]}},
+    {k:"eeEsc", r:"Habilitações", t:"escolha", ops:ESCOLARIDADE, dep:{k:"eeQuem",v:["Avó","Avô","Outro"]}}
+   ]},
+
+ { id:"familia", titulo:"Agregado familiar", ajuda:"Quem vive em casa com o aluno, sem o contar a ele.",
+   campos:[{k:"agregado", r:"Pessoas que vivem com o aluno", t:"familia"}]},
+
+ { id:"saude", titulo:"Saúde", campos:[
+    {k:"saude", r:"Tem problemas de saúde frequentes?", t:"simnao"},
+    {k:"saudeTipo", r:"De que tipo?", t:"multi", ops:["Respiratórios","Alérgicos","Cardíacos","Digestivos","Outro"], dep:{k:"saude",v:["Sim"]}},
+    {k:"saudeQual", r:"Descreva", t:"area", dep:{k:"saude",v:["Sim"]}},
+    {k:"def", r:"É portador de alguma deficiência?", t:"simnao"},
+    {k:"defTipo", r:"De que tipo?", t:"multi", ops:["Visual","Auditiva","Motora","Mental","Outra"], dep:{k:"def",v:["Sim"]}},
+    {k:"defQual", r:"Descreva", t:"area", dep:{k:"def",v:["Sim"]}},
+    {k:"oculos", r:"Usa óculos?", t:"simnao"},
+    {k:"medic", r:"Toma medicação regular durante o horário escolar?", t:"simnao"},
+    {k:"medicQual", r:"Qual o medicamento, a dose e o horário?", t:"area", dep:{k:"medic",v:["Sim"]}, nota:"Vou enviar a folha própria em papel para assinar."},
+    {k:"benuron", r:"Em caso de febre, autoriza a administração de Ben-u-ron?", t:"aut"}
+   ]},
+
+ { id:"comer", titulo:"Alimentação", campos:[
+    {k:"leite", r:"Leite escolar", t:"escolha", ops:["Simples","Achocolatado","Não bebe"]},
+    {k:"lacteos", r:"Tolera lacticínios?", t:"escolha", ops:["Sim","Não"]},
+    {k:"alergias", r:"Alergias ou intolerâncias alimentares", t:"area", nota:"Deixe em branco se não houver."},
+    {k:"restricoes", r:"Outras restrições alimentares", t:"texto", nota:"Por exemplo, vegetariano ou motivos religiosos."}
+   ]},
+
+ { id:"rotinas", titulo:"Depois das aulas", campos:[
+    {k:"saidaCom", r:"Como sai da escola?", t:"escolha", ops:["Vai sozinho","Com o pai","Com a mãe","Com outra pessoa"]},
+    {k:"saidaQuem", r:"Com quem?", t:"texto", dep:{k:"saidaCom",v:["Com outra pessoa"]}},
+    {k:"atl", r:"Frequenta um ATL?", t:"simnao"},
+    {k:"atlQual", r:"Qual?", t:"texto", dep:{k:"atl",v:["Sim"]}},
+    {k:"ama", r:"Fica com uma ama ou \u201cmestra\u201d?", t:"simnao"},
+    {k:"familiares", r:"Fica com familiares (avós, tios)?", t:"simnao"}
+   ]},
+
+ { id:"tempos", titulo:"Atividades e interesses", campos:[
+    {k:"extra", r:"Atividades fora da escola", t:"multi", ops:["Língua estrangeira","Escutismo","Desporto","Dança","Música","Teatro","Catequese","Outra"]},
+    {k:"extraQual", r:"Qual?", t:"texto", dep:{k:"extra",contem:"Outra"}},
+    {k:"gostos", r:"Quando não está na escola, gosta de", t:"multi", ops:["Ver TV","Jogar no computador","Ajudar em casa","Ler","Brincar em casa","Brincar na rua","Passear","Ouvir música","Ir ao cinema"]},
+    {k:"outrosGostos", r:"Outras preferências", t:"area"}
+   ]},
+
+ { id:"inscricoes", titulo:"Inscrições", campos:[
+    {k:"aec", r:"Atividades de Enriquecimento Curricular (AEC)", t:"escolha", ops:["Inscrevo","Não inscrevo"]},
+    {k:"almoco", r:"Almoça na escola?", t:"simnao"},
+    {k:"almocoDias", r:"Em que dias?", t:"multi", ops:DIAS, dep:{k:"almoco",v:["Sim"]}},
+    {k:"caf", r:"Frequenta a CAF (prolongamento)?", t:"simnao"},
+    {k:"cafEntrada", r:"Hora de entrada", t:"texto", dep:{k:"caf",v:["Sim"]}},
+    {k:"cafSaida", r:"Hora de saída", t:"texto", dep:{k:"caf",v:["Sim"]}},
+    {k:"fluor", r:"Bochecho de flúor", t:"aut"}
+   ]},
+
+ { id:"autorizacoes", titulo:"Autorizações", ajuda:"Valem para todo o ano letivo. Pode mudar de ideias a qualquer momento, avisando-me por escrito.",
+   campos:[
+    {k:"autVisitas", r:"Visitas de estudo e saídas no concelho", t:"aut", obrig:true},
+    {k:"autImagem", r:"Recolha de fotografias e vídeo em atividades escolares", t:"aut", obrig:true},
+    {k:"autPublica", r:"Publicação de trabalhos e fotografias na página do agrupamento, no jornal escolar e nas redes da escola", t:"aut", obrig:true}
+   ]},
+
+ { id:"fim", titulo:"Para terminar", campos:[
+    {k:"obs", r:"Há alguma coisa que queira dizer-me sobre o seu educando?", t:"area", nota:"Fica só entre si e o professor."},
+    {k:"preenchidoPor", r:"Nome de quem preencheu", t:"texto", obrig:true}
+   ]}
+];
+</script>
+
+<!-- =================== APP =================== -->
+<div class="topo nao-imprime" id="topo">
+  <div class="envolve">
+    <div class="marca">
+      <h1>Início de ano</h1>
+      <p id="subtitulo"></p>
+    </div>
+    <div class="barra"><i id="barra"></i></div>
+    <div class="passo-conta" id="passoConta"></div>
+  </div>
+</div>
+
+<main class="envolve" id="palco"></main>
+
+<div class="nav oculto nao-imprime" id="nav">
+  <div class="envolve">
+    <button class="bt sec" id="btAtras" type="button">Voltar</button>
+    <button class="bt" id="btFrente" type="button">Continuar</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, setDoc, collection, getDocs, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+let db=null, auth=null, firebaseOk=false;
+try{
+  const app = initializeApp(CONFIG.firebase);
+  db = getFirestore(app); auth = getAuth(app); firebaseOk = true;
+}catch(e){ console.error("Firebase não arrancou:", e); }
+
+/* ---------- utilitários ---------- */
+const $ = s => document.querySelector(s);
+const palco = $("#palco"), nav = $("#nav"), barra = $("#barra"), passoConta = $("#passoConta");
+const esc = s => String(s??"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const curto = nome => { const p = nome.trim().split(/\s+/); return p.length<2 ? p[0] : p[0]+" "+p[p.length-1][0]+"."; };
+const dataPT = v => { if(!v) return ""; const [a,m,d]=v.split("-"); return d&&m&&a ? `${d}/${m}/${a}` : v; };
+$("#subtitulo").textContent = `${CONFIG.turma} · ${CONFIG.escola.split("—")[0].trim()} · ${CONFIG.anoLetivo}`;
+
+let alunoAtual=null, dados={}, passo=0;
+
+/* ---------- dependências ---------- */
+function visivel(c){
+  if(!c.dep) return true;
+  const v = dados[c.dep.k];
+  if(c.dep.contem) return Array.isArray(v) && v.includes(c.dep.contem);
+  return c.dep.v.includes(v);
+}
+function camposVisiveis(p){ return p.campos.filter(visivel); }
+
+/* ---------- desenho dos campos ---------- */
+function campoHTML(c){
+  const v = dados[c.k];
+  const nota = c.nota ? `<span class="nota">${esc(c.nota)}</span>` : "";
+  let corpo = "";
+  if(c.t==="texto"||c.t==="tel"||c.t==="email"||c.t==="data"){
+    const tipo = c.t==="texto"?"text":c.t==="data"?"date":c.t;
+    const modo = c.t==="tel"?' inputmode="tel"':"";
+    corpo = `<input type="${tipo}"${modo} data-k="${c.k}" value="${esc(v||"")}">`;
+  } else if(c.t==="area"){
+    corpo = `<textarea data-k="${c.k}">${esc(v||"")}</textarea>`;
+  } else if(c.t==="escolha"||c.t==="simnao"||c.t==="aut"){
+    const ops = c.t==="simnao" ? ["Sim","Não"] : c.t==="aut" ? ["Autorizo","Não autorizo"] : c.ops;
+    corpo = `<div class="opcoes">` + ops.map(o=>{
+      const cls = o==="Sim"||o==="Autorizo" ? " sim" : (o==="Não"||o==="Não autorizo" ? " nao" : "");
+      return `<button type="button" class="op${cls}" data-k="${c.k}" data-v="${esc(o)}" aria-pressed="${v===o}">${esc(o)}</button>`;
+    }).join("") + `</div>`;
+  } else if(c.t==="multi"){
+    const sel = Array.isArray(v)?v:[];
+    corpo = `<div class="opcoes">` + c.ops.map(o =>
+      `<button type="button" class="op multi" data-k="${c.k}" data-v="${esc(o)}" aria-pressed="${sel.includes(o)}">${esc(o)}</button>`
+    ).join("") + `</div>`;
+  } else if(c.t==="familia"){
+    corpo = familiaHTML();
+  }
+  return `<div class="campo" data-campo="${c.k}">
+    <label class="rotulo">${esc(c.r)}${c.obrig?' <span aria-hidden="true">*</span>':""}${nota}</label>
+    ${corpo}<div class="msg-erro oculto">Preencha este campo.</div></div>`;
+}
+
+function familiaHTML(){
+  const lista = Array.isArray(dados.agregado)?dados.agregado:[];
+  const linhas = lista.map((m,i)=>`
+    <div class="linha">
+      <input type="number" min="0" max="120" inputmode="numeric" data-fam="idade" data-i="${i}" value="${esc(m.idade||"")}" placeholder="Idade">
+      <select data-fam="parentesco" data-i="${i}">
+        <option value="">Parentesco</option>
+        ${PARENTESCOS.map(p=>`<option ${m.parentesco===p?"selected":""}>${p}</option>`).join("")}
+      </select>
+      <button type="button" class="bt-x" data-fam="remover" data-i="${i}" aria-label="Remover">×</button>
+    </div>`).join("");
+  return `<div class="familia">${linhas}
+    <button type="button" class="bt-leve" data-fam="juntar">+ Juntar pessoa</button></div>`;
+}
+
+/* ---------- ecrãs ---------- */
+function verCapa(){
+  nav.classList.add("oculto"); barra.style.width="0"; passoConta.textContent="";
+  const feitos = JSON.parse(localStorage.getItem("inquerito:enviados")||"[]");
+  palco.innerHTML = `<section class="capa">
+    <h2 class="serif">Quem é o seu educando?</h2>
+    <p>Toque no nome do seu filho ou filha para começar. São cerca de cinco minutos. No fim, fico com os dados e imprimo a folha para assinar.</p>
+    <div class="lista-alunos">${CONFIG.alunos.map(a=>`
+      <button class="aluno-bt" data-aluno="${a.id}">
+        <span>${esc(curto(a.nome))}</span>
+        ${feitos.includes(a.id)?'<span class="marca-resp">respondido</span>':'<span aria-hidden="true">›</span>'}
+      </button>`).join("")}</div>
+    <p style="margin-top:2rem;font-size:.85rem;color:var(--tinta-suave)">
+      Os dados são usados só pelo professor titular e pela escola. Não são visíveis para mais ninguém neste site.</p>
+  </section>`;
+  palco.querySelectorAll("[data-aluno]").forEach(b=>b.onclick=()=>{
+    alunoAtual = CONFIG.alunos.find(a=>a.id===b.dataset.aluno);
+    const guardado = localStorage.getItem("inquerito:"+alunoAtual.id);
+    dados = guardado ? JSON.parse(guardado) : {};
+    passo = 0; verPasso();
+  });
+}
+
+function verPasso(){
+  if(passo >= PASSOS.length) return verRevisao();
+  const p = PASSOS[passo];
+  nav.classList.remove("oculto");
+  barra.style.width = ((passo)/(PASSOS.length+1)*100)+"%";
+  passoConta.textContent = `${curto(alunoAtual.nome)} · passo ${passo+1} de ${PASSOS.length+1}`;
+  palco.innerHTML = `<section class="seccao">
+    <h2>${esc(p.titulo)}</h2>
+    ${p.ajuda?`<p class="ajuda">${esc(p.ajuda)}</p>`:""}
+    ${camposVisiveis(p).map(campoHTML).join("")}
+  </section>`;
+  $("#btAtras").textContent = passo===0 ? "Mudar de aluno" : "Voltar";
+  $("#btFrente").textContent = "Continuar";
+  ligarCampos();
+  window.scrollTo({top:0});
+}
+
+function ligarCampos(){
+  palco.querySelectorAll("input[data-k],textarea[data-k]").forEach(el=>{
+    el.oninput = ()=>{ dados[el.dataset.k] = el.value; guardarLocal(); };
+  });
+  palco.querySelectorAll(".op").forEach(b=>{
+    b.onclick = ()=>{
+      const k=b.dataset.k, v=b.dataset.v;
+      if(b.classList.contains("multi")){
+        const sel = Array.isArray(dados[k])?[...dados[k]]:[];
+        const i = sel.indexOf(v); i>=0 ? sel.splice(i,1) : sel.push(v);
+        dados[k]=sel;
+      } else {
+        dados[k] = dados[k]===v ? "" : v;
+      }
+      guardarLocal(); redesenhar();
+    };
+  });
+  palco.querySelectorAll("[data-fam]").forEach(el=>{
+    const i = Number(el.dataset.i);
+    if(el.dataset.fam==="juntar") el.onclick = ()=>{ dados.agregado=[...(dados.agregado||[]),{idade:"",parentesco:""}]; guardarLocal(); redesenhar(); };
+    else if(el.dataset.fam==="remover") el.onclick = ()=>{ dados.agregado.splice(i,1); guardarLocal(); redesenhar(); };
+    else el.oninput = el.onchange = ()=>{ dados.agregado[i][el.dataset.fam]=el.value; guardarLocal(); };
+  });
+}
+function redesenhar(){ const y=window.scrollY; verPasso(); window.scrollTo({top:y}); }
+function guardarLocal(){ if(alunoAtual) localStorage.setItem("inquerito:"+alunoAtual.id, JSON.stringify(dados)); }
+
+function validarPasso(){
+  const p = PASSOS[passo]; let ok = true;
+  camposVisiveis(p).forEach(c=>{
+    const cx = palco.querySelector(`[data-campo="${c.k}"]`); if(!cx) return;
+    const vazio = !dados[c.k] || (Array.isArray(dados[c.k]) && !dados[c.k].length);
+    const falta = c.obrig && vazio;
+    cx.classList.toggle("falta", falta);
+    cx.querySelector(".msg-erro").classList.toggle("oculto", !falta);
+    if(falta) ok = false;
+  });
+  if(!ok) palco.querySelector(".campo.falta")?.scrollIntoView({block:"center",behavior:"smooth"});
+  return ok;
+}
+
+/* ---------- revisão e envio ---------- */
+function valorTexto(c){
+  const v = dados[c.k];
+  if(v===undefined||v===""||v===null||(Array.isArray(v)&&!v.length)) return "—";
+  if(c.t==="data") return dataPT(v);
+  if(c.t==="familia") return (v||[]).map(m=>`${m.parentesco||"?"} (${m.idade||"?"})`).join(", ")||"—";
+  return Array.isArray(v) ? v.join(", ") : v;
+}
+function verRevisao(){
+  barra.style.width="100%";
+  passoConta.textContent = `${curto(alunoAtual.nome)} · último passo`;
+  const blocos = PASSOS.map(p=>{
+    const linhas = camposVisiveis(p).map(c=>`<div class="par"><dt>${esc(c.r)}</dt><dd>${esc(valorTexto(c))}</dd></div>`).join("");
+    return `<h3>${esc(p.titulo)}</h3><dl>${linhas}</dl>`;
+  }).join("");
+  palco.innerHTML = `<section class="seccao revisao">
+    <h2>Confirme antes de enviar</h2>
+    <p class="ajuda">Se houver algo errado, use o botão Voltar e corrija.</p>
+    ${blocos}
+    <div class="confirma">
+      <input type="checkbox" id="confirma">
+      <label for="confirma">Confirmo que os dados são verdadeiros e que sou o encarregado de educação do aluno.</label>
+    </div>
+    <div class="msg-erro oculto" id="erroEnvio"></div>
+  </section>`;
+  $("#btAtras").textContent = "Voltar";
+  $("#btFrente").textContent = "Enviar respostas";
+}
+
+async function enviar(){
+  if(!$("#confirma").checked){
+    const e=$("#erroEnvio"); e.textContent="Falta confirmar a declaração acima."; e.classList.remove("oculto"); return;
+  }
+  const bt = $("#btFrente"); bt.disabled = true; bt.textContent = "A enviar…";
+  try{
+    if(!firebaseOk) throw new Error("Sem ligação à base de dados.");
+    await setDoc(doc(db,"respostas",alunoAtual.id), {
+      alunoId: alunoAtual.id, aluno: alunoAtual.nome,
+      turma: CONFIG.turma, anoLetivo: CONFIG.anoLetivo,
+      dados, enviadoEm: serverTimestamp()
+    });
+    const feitos = new Set(JSON.parse(localStorage.getItem("inquerito:enviados")||"[]"));
+    feitos.add(alunoAtual.id);
+    localStorage.setItem("inquerito:enviados", JSON.stringify([...feitos]));
+    nav.classList.add("oculto");
+    palco.innerHTML = `<section class="fim">
+      <div class="selo" aria-hidden="true">✓</div>
+      <h2 class="serif" style="font-size:2rem;margin:.5rem 0">Respostas enviadas</h2>
+      <p>Obrigado. Vou imprimir a folha do ${esc(curto(alunoAtual.nome))} para assinar quando lhe der jeito.</p>
+      <p><button class="bt sec" style="flex:0" id="btVoltarCapa">Responder por outro filho</button></p>
+    </section>`;
+    $("#btVoltarCapa").onclick = ()=>{ alunoAtual=null; dados={}; verCapa(); };
+  }catch(err){
+    console.error(err);
+    const e=$("#erroEnvio");
+    e.textContent = "Não foi possível enviar. Verifique a ligação à internet e tente outra vez.";
+    e.classList.remove("oculto");
+    bt.disabled=false; bt.textContent="Enviar respostas";
+  }
+}
+
+$("#btAtras").onclick = ()=>{
+  if(passo===0){ alunoAtual=null; verCapa(); return; }
+  passo--; verPasso();
+};
+$("#btFrente").onclick = ()=>{
+  if(passo>=PASSOS.length) return enviar();
+  if(!validarPasso()) return;
+  passo++; verPasso();
+};
+
+/* =================== VISTA DO PROFESSOR =================== */
+let respostas = [];
+
+function ecraLogin(msg=""){
+  nav.classList.add("oculto"); barra.style.width="0"; passoConta.textContent="";
+  palco.innerHTML = `<section class="seccao" style="max-width:24rem">
+    <h2>Entrar</h2>
+    <p class="ajuda">Área do professor titular.</p>
+    <div class="campo"><label class="rotulo" for="lgEmail">E-mail</label><input id="lgEmail" type="email" value="${esc(CONFIG.emailProfessor)}"></div>
+    <div class="campo"><label class="rotulo" for="lgPw">Palavra-passe</label><input id="lgPw" type="password"></div>
+    ${msg?`<div class="msg-erro">${esc(msg)}</div>`:""}
+    <button class="bt" id="btEntrar" style="flex:0">Entrar</button>
+  </section>`;
+  $("#btEntrar").onclick = async ()=>{
+    try{ await signInWithEmailAndPassword(auth, $("#lgEmail").value.trim(), $("#lgPw").value); }
+    catch(e){ ecraLogin("E-mail ou palavra-passe errados."); }
+  };
+  $("#lgPw").onkeydown = e => { if(e.key==="Enter") $("#btEntrar").click(); };
+}
+
+async function carregarRespostas(){
+  const s = await getDocs(collection(db,"respostas"));
+  respostas = s.docs.map(d=>d.data());
+}
+
+function resp(id){ return respostas.find(r=>r.alunoId===id); }
+function val(r,k){
+  const v = r?.dados?.[k];
+  if(v===undefined||v===null||v===""||(Array.isArray(v)&&!v.length)) return "";
+  return Array.isArray(v)?v.join(", "):v;
+}
+
+async function ecraProf(aba="estado"){
+  nav.classList.add("oculto"); barra.style.width="0"; passoConta.textContent="";
+  palco.innerHTML = `<div class="prof-topo">
+      <div><h2>Respostas da turma</h2><p class="ajuda" style="margin:.2rem 0 0">${esc(CONFIG.turma)} · ${esc(CONFIG.anoLetivo)}</p></div>
+      <button class="bt-mini" id="btSair">Sair</button>
+    </div>
+    <div class="abas" role="tablist">
+      ${[["estado","Estado"],["fichas","Fichas para assinar"],["ee","Caracterização dos EE"],["contactos","Contactos"],["leite","Leite e alergias"],["aec","AEC e almoços"]]
+        .map(([k,t])=>`<button class="aba" role="tab" data-aba="${k}" aria-selected="${aba===k}">${t}</button>`).join("")}
+    </div>
+    <div id="conteudoProf">A carregar…</div>`;
+  $("#btSair").onclick = ()=>signOut(auth);
+  palco.querySelectorAll(".aba").forEach(b=>b.onclick=()=>ecraProf(b.dataset.aba));
+  if(!respostas.length) await carregarRespostas();
+  $("#conteudoProf").innerHTML = ({estado:vistaEstado,fichas:vistaFichas,ee:vistaEE,contactos:vistaContactos,leite:vistaLeite,aec:vistaAEC}[aba])();
+  $("#conteudoProf").querySelectorAll("[data-imprimir]").forEach(b=>b.onclick=()=>window.print());
+  $("#conteudoProf").querySelectorAll("[data-csv]").forEach(b=>b.onclick=()=>{
+    if(b.dataset.csv==="tudo") descarregarTudo(); else descarregarTabela();
+  });
+  $("#conteudoProf").querySelectorAll("[data-recarregar]").forEach(b=>b.onclick=async()=>{ respostas=[]; await ecraProf(aba); });
+}
+
+function vistaEstado(){
+  const faltam = CONFIG.alunos.filter(a=>!resp(a.id)).length;
+  return `<div class="acoes">
+      <button class="bt-mini" data-recarregar>Atualizar</button>
+      <button class="bt-mini" data-csv="tudo">Descarregar tudo em Excel</button>
+      <span style="align-self:center;font-size:.88rem;color:var(--tinta-suave)">
+        ${CONFIG.alunos.length-faltam} de ${CONFIG.alunos.length} respostas recebidas</span>
+    </div>` +
+    CONFIG.alunos.map(a=>{
+      const r = resp(a.id);
+      const quando = r?.enviadoEm?.toDate ? r.enviadoEm.toDate().toLocaleString("pt-PT") : "";
+      return `<div class="estado-linha">
+        <span>${esc(a.nome)}</span>
+        <span class="${r?"pinta-ok":"pinta-falta"}" style="font-size:.85rem;text-align:right">${r?esc(quando||"respondido"):"por responder"}</span>
+      </div>`;
+    }).join("");
+}
+
+function vistaFichas(){
+  const comResposta = CONFIG.alunos.filter(a=>resp(a.id));
+  if(!comResposta.length) return `<p>Ainda não há respostas para imprimir.</p>`;
+  return `<div class="acoes nao-imprime">
+      <button class="bt-mini" data-imprimir>Imprimir todas (${comResposta.length})</button>
+      <button class="bt-mini" data-recarregar>Atualizar</button>
+    </div>` + comResposta.map(a=>folhaHTML(a, resp(a.id))).join("");
+}
+
+function folhaHTML(a, r){
+  const blocos = PASSOS.map(p=>{
+    const linhas = p.campos.filter(c=>{
+      if(!c.dep) return true;
+      const v = r.dados[c.dep.k];
+      return c.dep.contem ? (Array.isArray(v)&&v.includes(c.dep.contem)) : c.dep.v.includes(v);
+    }).map(c=>{
+      let v = r.dados[c.k];
+      if(c.t==="familia") v = (v||[]).map(m=>`${m.parentesco||"?"} (${m.idade||"?"} anos)`).join("; ");
+      else if(c.t==="data") v = dataPT(v);
+      else if(Array.isArray(v)) v = v.join(", ");
+      return `<div class="par"><b>${esc(c.r)}</b><span>${esc(v||"—")}</span></div>`;
+    }).join("");
+    return `<h3>${esc(p.titulo)}</h3>${linhas}`;
+  }).join("");
+  const quando = r.enviadoEm?.toDate ? r.enviadoEm.toDate().toLocaleDateString("pt-PT") : "";
+  return `<article class="folha">
+    <div class="cabeca">
+      <h2>${esc(a.nome)}</h2>
+      <p>${esc(CONFIG.escola)} · ${esc(CONFIG.turma)} · ${esc(CONFIG.anoLetivo)}${quando?` · respondido a ${esc(quando)}`:""}</p>
+    </div>
+    ${blocos}
+    <div class="assinatura">
+      <p>Declaro que os dados acima são verdadeiros e confirmo as autorizações assinaladas.</p>
+      <div class="linhas">
+        <div>Assinatura do encarregado de educação</div>
+        <div>Data</div>
+      </div>
+    </div>
+  </article>`;
+}
+
+let ultimaTabela = null;
+function tabela(titulo, cabecalhos, linhasArr){
+  ultimaTabela = {titulo, cabecalhos, linhasArr};
+  const linhas = linhasArr.map(tr).join("");
+  return `<div class="acoes nao-imprime">
+      <button class="bt-mini" data-imprimir>Imprimir</button>
+      <button class="bt-mini" data-csv="tabela">Descarregar em Excel</button>
+      <button class="bt-mini" data-recarregar>Atualizar</button>
+    </div>
+    <article class="folha"><div class="cabeca"><h2>${esc(titulo)}</h2>
+    <p>${esc(CONFIG.turma)} · ${esc(CONFIG.escola)} · ${esc(CONFIG.anoLetivo)}</p></div>
+    <div class="tabela-rolo"><table><thead><tr>${cabecalhos.map(h=>`<th>${esc(h)}</th>`).join("")}</tr></thead>
+    <tbody>${linhas}</tbody></table></div></article>`;
+}
+const tr = cs => `<tr>${cs.map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`;
+
+/* ---------- descarregar ---------- */
+function guardarCSV(nome, cabecalhos, linhas){
+  const cel = v => `"${String(v??"").replace(/"/g,'""')}"`;
+  const txt = "\uFEFF" + [cabecalhos, ...linhas].map(l=>l.map(cel).join(";")).join("\r\n");
+  const url = URL.createObjectURL(new Blob([txt], {type:"text/csv;charset=utf-8"}));
+  const a = document.createElement("a");
+  a.href = url; a.download = nome; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+}
+function descarregarTabela(){
+  if(!ultimaTabela) return;
+  guardarCSV(ultimaTabela.titulo.replace(/[^\wÀ-ÿ ]/g,"").trim()+".csv",
+    ultimaTabela.cabecalhos, ultimaTabela.linhasArr);
+}
+function descarregarTudo(){
+  const cs = PASSOS.flatMap(p=>p.campos);
+  const cabecalhos = ["N.º","Aluno","Respondido em", ...cs.map(c=>c.r)];
+  const linhas = CONFIG.alunos.map((a,i)=>{
+    const r = resp(a.id);
+    const quando = r?.enviadoEm?.toDate ? r.enviadoEm.toDate().toLocaleString("pt-PT") : "";
+    return [i+1, a.nome, quando, ...cs.map(c=>{
+      let v = r?.dados?.[c.k];
+      if(c.t==="familia") return (v||[]).map(m=>`${m.parentesco||"?"} (${m.idade||"?"})`).join("; ");
+      if(c.t==="data") return dataPT(v);
+      return Array.isArray(v) ? v.join(", ") : (v||"");
+    })];
+  });
+  guardarCSV(`Respostas ${CONFIG.turma} ${CONFIG.anoLetivo.replace("/","-")}.csv`, cabecalhos, linhas);
+}
+
+function vistaEE(){
+  const linhas = CONFIG.alunos.map((a,i)=>{ const r=resp(a.id);
+    return [i+1, a.nome, val(r,"eeNome"), val(r,"eeQuem"), val(r,"paiProf")||val(r,"paiSit"),
+      val(r,"paiEsc"), val(r,"maeProf")||val(r,"maeSit"), val(r,"maeEsc"),
+      (r?.dados?.agregado||[]).length ? (r.dados.agregado.length+1) : ""];
+  });
+  return tabela("Caracterização dos encarregados de educação",
+    ["N.º","Aluno","Encarregado de educação","Parentesco","Situação do pai","Habilitações do pai","Situação da mãe","Habilitações da mãe","Agregado"], linhas);
+}
+function vistaContactos(){
+  const linhas = CONFIG.alunos.map((a,i)=>{ const r=resp(a.id);
+    return [i+1, a.nome, val(r,"eeNome"), val(r,"eeTlm"), val(r,"eeTlm2"), val(r,"eeEmail"),
+      [val(r,"eeMorada"),val(r,"eeCP")].filter(Boolean).join(", ")];
+  });
+  return tabela("Contactos dos encarregados de educação",
+    ["N.º","Aluno","Encarregado de educação","Telemóvel","Outro contacto","E-mail","Morada"], linhas);
+}
+function vistaLeite(){
+  const linhas = CONFIG.alunos.map((a,i)=>{ const r=resp(a.id);
+    return [i+1, a.nome, val(r,"leite"), val(r,"lacteos"), val(r,"fluor"),
+      val(r,"alergias"), val(r,"restricoes"), val(r,"medicQual"), val(r,"oculos")==="Sim"?"óculos":""];
+  });
+  return tabela("Leite, alergias e saúde",
+    ["N.º","Aluno","Leite","Lacticínios","Flúor","Alergias alimentares","Outras restrições","Medicação","Notas"], linhas);
+}
+function vistaAEC(){
+  const linhas = CONFIG.alunos.map((a,i)=>{ const r=resp(a.id);
+    return [i+1, a.nome, val(r,"aec"), val(r,"almoco"), val(r,"almocoDias"),
+      val(r,"caf"), [val(r,"cafEntrada"),val(r,"cafSaida")].filter(Boolean).join(" às "),
+      val(r,"escalao"), val(r,"atl")==="Sim"?val(r,"atlQual")||"Sim":""];
+  });
+  return tabela("Inscrições nas AEC, almoços e CAF",
+    ["N.º","Aluno","AEC","Almoço","Dias","CAF","Horário da CAF","Escalão","ATL"], linhas);
+}
+
+/* ---------- arranque ---------- */
+function arrancar(){
+  if(location.hash.startsWith("#professor")){
+    if(!firebaseOk){ palco.innerHTML = `<p class="aviso">Falta configurar o Firebase no topo do ficheiro.</p>`; return; }
+    const chave = decodeURIComponent((location.hash.split("=")[1]||""));
+    palco.innerHTML = `<p style="padding:3rem 0;color:var(--tinta-suave)">A abrir…</p>`;
+    onAuthStateChanged(auth, async u => {
+      if(u) return ecraProf();
+      if(chave){
+        try{ await signInWithEmailAndPassword(auth, CONFIG.emailProfessor, chave); return; }
+        catch(e){ return ecraLogin("O link não funcionou. Entre com a palavra-passe."); }
+      }
+      ecraLogin();
+    });
+  } else {
+    verCapa();
+    if(!firebaseOk) palco.insertAdjacentHTML("afterbegin",
+      `<p class="aviso">Falta configurar o Firebase. As respostas ainda não são guardadas.</p>`);
+  }
+}
+window.addEventListener("hashchange", ()=>location.reload());
+arrancar();
+</script>
+</body>
+</html>
