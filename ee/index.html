@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conhecer melhor o seu educando</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f1ea; --card:#ffffff; --ink:#24303a; --muted:#6b7680; --line:#e3ddd1;
+    --accent:#2f7d6d; --accent-soft:#e2f1ec; --accent-ink:#ffffff; --warn:#b5543b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,sans-serif;font-size:17px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+  .wrap{max-width:640px;margin:0 auto;padding:0 16px 120px}
+  header.top{position:sticky;top:0;z-index:5;background:var(--bg);padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+  header.top .in{max-width:640px;margin:0 auto}
+  .steptitle{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-weight:800;font-size:15px}
+  .steptitle span:last-child{color:var(--muted);font-weight:600;white-space:nowrap}
+  .bar{height:8px;background:var(--line);border-radius:99px;margin-top:8px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:var(--accent);border-radius:99px;transition:width .3s}
+  h1{font-size:26px;line-height:1.2;margin:28px 0 12px}
+  h2{font-size:22px;margin:22px 0 4px}
+  .lead{color:var(--muted);margin:0 0 18px}
+  .q{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 16px;margin:14px 0;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .q .label{font-weight:700;margin:0 0 12px}
+  .q .hint{font-size:14px;color:var(--muted);margin:-8px 0 12px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:12px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer;min-height:46px}
+  .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  textarea,input[type=text]{width:100%;border:2px solid var(--line);border-radius:12px;padding:10px 12px;font:inherit;background:#fcfbf8;color:var(--ink)}
+  textarea{min-height:76px;resize:vertical}
+  textarea:focus,input:focus{outline:none;border-color:var(--accent)}
+  .follow{margin-top:12px}
+  .follow .flabel{font-size:15px;color:var(--muted);margin-bottom:6px}
+  .ms{border-top:1px dashed var(--line);padding:12px 0}
+  .ms:first-of-type{border-top:0;padding-top:0}
+  .ms .mlabel{font-weight:600;margin-bottom:8px}
+  .ms .chip{padding:8px 12px;min-height:40px;font-size:15px}
+  .intro p{margin:0 0 12px}
+  .note{background:var(--accent-soft);border-radius:14px;padding:14px 16px;font-size:15px}
+  .check{display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+  .check input{width:26px;height:26px;flex:none;accent-color:var(--accent);margin-top:2px}
+  nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
+  nav.bottom .in{max-width:640px;margin:0 auto;display:flex;gap:10px}
+  .btn{flex:1;border:0;border-radius:14px;padding:14px;font:inherit;font-weight:800;cursor:pointer;min-height:52px}
+  .btn.pri{background:var(--accent);color:#fff}
+  .btn.sec{background:#fff;color:var(--ink);border:2px solid var(--line);flex:0 0 34%}
+  .btn:disabled{opacity:.5;cursor:default}
+  .err{color:var(--warn);font-weight:700;margin-top:10px}
+  .done{text-align:center;padding-top:60px}
+  .done .big{font-size:64px}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+
+<header class="top" id="top" hidden>
+  <div class="in">
+    <div class="steptitle"><span id="stepName"></span><span id="stepCount"></span></div>
+    <div class="bar"><i id="barFill"></i></div>
+  </div>
+</header>
+
+<main class="wrap" id="app"></main>
+
+<nav class="bottom" id="nav">
+  <div class="in">
+    <button class="btn sec" id="back" hidden>Voltar</button>
+    <button class="btn pri" id="next">Começar</button>
+  </div>
+</nav>
+
+<script type="module">
+/* ============================================================
+   1) COLE AQUI A CONFIGURAÇÃO DO SEU PROJETO FIREBASE
+   (Consola Firebase → Definições do projeto → As suas apps → Web)
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyAotgPOVJ1HpaPj4suXVpEy9gMVish0Pds",
+  authDomain: "inquerito-cavaco.firebaseapp.com",
+  projectId: "inquerito-cavaco",
+  storageBucket: "inquerito-cavaco.firebasestorage.app",
+  messagingSenderId: "403627528887",
+  appId: "1:403627528887:web:c7692f18c65d6152667332"
+};
+const COLECAO = "inqueritos_ee";   // nome da coleção no Firestore
+
+/* ---------- Opções reutilizadas ---------- */
+const SN   = ["Sim","Não"];
+const SNN  = ["Sim","Não","Não sei"];
+const DIF3 = ["Sem dificuldades","Algumas dificuldades","Muitas dificuldades"];
+const DISC = ["Português","Matemática","Estudo do Meio","Inglês","Expressões / Artes","Educação Física","Música"];
+
+/* ---------- Perguntas (adaptadas da Ficha de Informação dos EE) ----------
+   t: chips (uma escolha) | multi (várias) | text | short | marcos | check
+   f: pergunta de seguimento que aparece quando se escolhe uma das opções em "when" */
+const STEPS = [
+ { title:"Sobre o aluno e a família", qs:[
+   {id:"ano", t:"chips", l:"Em que ano está o seu educando?", o:["1.º ano","2.º ano","3.º ano","4.º ano"]},
+   {id:"desde", t:"chips", l:"Há quanto tempo frequenta esta escola?", o:["Desde este ano","1 ano","2 anos","3 anos ou mais"]},
+   {id:"parentesco", t:"chips", l:"Quem está a responder?", o:["Mãe","Pai","Avó / Avô","Outro"], f:{when:["Outro"], l:"Qual?", t:"short"}},
+   {id:"horario", t:"multi", l:"Melhor horário para a escola o(a) contactar", o:["Manhã","Hora de almoço","Tarde","Fim do dia"]},
+   {id:"vive", t:"multi", l:"Com quem vive o aluno?", o:["Mãe","Pai","Irmãos","Avós","Outros"]},
+   {id:"irmaos", t:"chips", l:"Tem irmãos?", o:["Não","1","2","3 ou mais"], f:{when:["1","2","3 ou mais"], l:"Idades e ano de escolaridade (opcional)", t:"short"}},
+   {id:"linguas", t:"chips", l:"Que língua se fala em casa?", o:["Português","Português e outra","Outra"], f:{when:["Português e outra","Outra"], l:"Qual?", t:"short"}},
+   {id:"tpc_quem", t:"multi", l:"Quem acompanha o aluno nos trabalhos de casa?", o:["Mãe","Pai","Avós","Irmãos","Explicação / ATL","Ninguém"]},
+   {id:"familia_outras", t:"text", l:"Há mais alguma informação familiar que queira partilhar?", h:"Opcional"}
+ ]},
+ { title:"Percurso escolar", qs:[
+   {id:"pre", t:"chips", l:"Frequentou o pré-escolar (jardim de infância)?", o:SN, f:{when:["Sim"], l:"Onde e durante quanto tempo? (opcional)", t:"short"}},
+   {id:"creche", t:"chips", l:"Frequentou creche antes dos 3 anos?", o:SN},
+   {id:"ip", t:"chips", l:"Teve intervenção precoce na infância?", o:SNN},
+   {id:"adaptacao", t:"chips", l:"Como foi a adaptação à escola e às outras crianças?", o:["Correu bem","Com algumas dificuldades","Foi difícil"], f:{when:["Com algumas dificuldades","Foi difícil"], l:"Pode contar um pouco? (opcional)", t:"text"}},
+   {id:"anos", t:"text", l:"Que escolas frequentou e como correu cada ano?", h:"Opcional — escreva só o que se lembrar"},
+   {id:"mudou", t:"chips", l:"Mudou de escola ou de agrupamento?", o:SN, f:{when:["Sim"], l:"Quando e porquê?", t:"short"}},
+   {id:"retencao", t:"chips", l:"Ficou retido(a) algum ano?", o:SN, f:{when:["Sim"], l:"Que ano e porquê?", t:"short"}},
+   {id:"ausencias", t:"chips", l:"Faltou à escola durante muito tempo (doença, mudança…)?", o:SN, f:{when:["Sim"], l:"Quando e porquê?", t:"short"}},
+   {id:"distancia", t:"chips", l:"Teve ensino à distância, doméstico ou outra modalidade?", o:SN, f:{when:["Sim"], l:"Qual?", t:"short"}},
+   {id:"apoios", t:"chips", l:"Já teve apoio educativo, tutoria ou apoio psicopedagógico?", o:SNN, f:{when:["Sim"], l:"Quais, em que anos e como correu?", t:"text"}},
+   {id:"docs_ant", t:"chips", l:"Existem relatórios ou planos da escola anteriores (RTP, PEI, outros)?", o:SNN, f:{when:["Sim"], l:"Pode entregar cópia à escola?", t:"chips", o:SN}}
+ ]},
+ { title:"Gravidez e parto", lead:"Responda com o que se lembrar ou o que estiver no Boletim de Saúde. Se não souber, pode saltar.", qs:[
+   {id:"g_planeada", t:"chips", l:"A gravidez foi planeada?", o:SN},
+   {id:"g_vigiada", t:"chips", l:"A gravidez foi vigiada (consultas)?", o:SN},
+   {id:"g_inter", t:"chips", l:"Houve problemas na gravidez (infeções, tensão alta, diabetes, internamentos…)?", o:SNN, f:{when:["Sim"], l:"Quais?", t:"short"}},
+   {id:"g_subst", t:"chips", l:"Houve exposição a medicação, tabaco, álcool ou outras substâncias?", o:SN, f:{when:["Sim"], l:"Qual?", t:"short"}},
+   {id:"g_exames", t:"chips", l:"As ecografias ou rastreios mostraram alguma alteração?", o:SNN, f:{when:["Sim"], l:"Quais?", t:"short"}},
+   {id:"gestacao", t:"chips", l:"Nasceu…", o:["Antes do tempo (antes das 37 semanas)","No tempo certo","Depois do tempo","Não sei"], f:{when:["Antes do tempo (antes das 37 semanas)"], l:"Com quantas semanas?", t:"short"}},
+   {id:"parto", t:"chips", l:"Tipo de parto", o:["Normal","Ventosa ou fórceps","Cesariana"]},
+   {id:"p_inter", t:"chips", l:"Houve problemas no parto (falta de oxigénio, cordão, outros)?", o:SNN, f:{when:["Sim"], l:"Quais?", t:"short"}},
+   {id:"nasc", t:"short", l:"Peso ao nascer e outros dados, se souber", h:"Opcional — ex.: 3200 g, 49 cm, Apgar 9/10"},
+   {id:"neo", t:"chips", l:"Precisou de incubadora ou ficou internado(a) após nascer?", o:SN, f:{when:["Sim"], l:"Durante quanto tempo?", t:"short"}}
+ ]},
+ { title:"Primeiros anos", qs:[
+   {id:"leite", t:"chips", l:"Nos primeiros meses foi alimentado(a) com…", o:["Leite materno","Leite artificial","Os dois"]},
+   {id:"saude1", t:"chips", l:"Teve problemas de saúde no primeiro ano (icterícia, convulsões, internamentos, otites…)?", o:SNN, f:{when:["Sim"], l:"Quais?", t:"short"}},
+   {id:"pezinho", t:"chips", l:"Teste do pezinho e rastreio auditivo", o:["Normais","Com alterações","Não sei"]},
+   {id:"vacinas", t:"chips", l:"As vacinas estão em dia?", o:SN},
+   {id:"bebe", t:"multi", l:"Como era em bebé?", o:["Tranquilo","Irritável","Dormia bem","Dormia mal","Chorava muito","Gostava de colo e contacto"]},
+   {id:"marcos", t:"marcos", l:"Quando fez estas coisas?", h:"Toque na opção que melhor corresponde",
+     rows:["Segurar a cabeça","Sentar-se sem apoio","Gatinhar","Andar sozinho(a)","Primeiras palavras","Primeiras frases","Deixar a fralda (dia)","Deixar a fralda (noite)"],
+     o:["Na idade normal","Mais tarde","Não sei"]},
+   {id:"marcos_obs", t:"text", l:"Observações sobre o desenvolvimento", h:"Opcional"}
+ ]},
+ { title:"Fala e movimento", qs:[
+   {id:"compreende", t:"chips", l:"Compreende o que lhe dizem?", o:["Sempre","Muitas vezes","Poucas vezes"]},
+   {id:"exprime", t:"chips", l:"Como se exprime hoje?", o:["Frases completas","Frases curtas","Palavras soltas","Gestos ou imagens"]},
+   {id:"sons", t:"chips", l:"Troca ou come sons, ou custa a perceber o que diz?", o:SN, f:{when:["Sim"], l:"Exemplos (opcional)", t:"short"}},
+   {id:"gaguez", t:"chips", l:"Gagueja ou tem dificuldade em falar seguido?", o:SN},
+   {id:"tfala", t:"chips", l:"Já teve avaliação ou terapia da fala?", o:SN},
+   {id:"marcha", t:"chips", l:"A andar…", o:["Sem dificuldades","Com dificuldades"], f:{when:["Com dificuldades"], l:"Quais?", t:"short"}},
+   {id:"quedas", t:"chips", l:"Cai muitas vezes ou tem pouco equilíbrio?", o:SN},
+   {id:"mot_global", t:"chips", l:"Correr, saltar, subir escadas, andar de bicicleta", o:DIF3},
+   {id:"mot_fina", t:"chips", l:"Agarrar o lápis, recortar, apertar botões, atar atacadores", o:DIF3},
+   {id:"lateral", t:"chips", l:"Que mão usa mais?", o:["Direita","Esquerda","As duas","Ainda não está definida"]}
+ ]},
+ { title:"Alimentação e sono", qs:[
+   {id:"alim", t:"chips", l:"Como é a alimentação atual?", o:["Variada","Seletiva (recusa muitos alimentos)","Com restrições"]},
+   {id:"texturas", t:"chips", l:"Recusa certas texturas, cheiros ou sabores?", o:SN, f:{when:["Sim"], l:"Quais?", t:"short"}},
+   {id:"mastig", t:"chips", l:"Tem dificuldade em mastigar ou engolir, engasga-se ou vomita muitas vezes?", o:SN},
+   {id:"talheres", t:"chips", l:"Come sozinho(a) e usa talheres?", o:["Sim","Com ajuda","Não"]},
+   {id:"alergias", t:"chips", l:"Tem alergias, intolerâncias ou dieta por indicação médica?", o:SN, f:{when:["Sim"], l:"Quais?", t:"short"}},
+   {id:"apetite", t:"chips", l:"Apetite e peso", o:["Sem preocupações","Com preocupações"], f:{when:["Com preocupações"], l:"Quais?", t:"short"}},
+   {id:"horas", t:"short", l:"A que horas costuma deitar-se e acordar?", h:"Ex.: 21h30 / 7h30"},
+   {id:"sono", t:"chips", l:"Custa-lhe adormecer, acorda de noite ou tem pesadelos frequentes?", o:SN}
+ ]},
+ { title:"Saúde atual", lead:"Partilhe apenas o que achar útil para a escola apoiar melhor o seu educando.", qs:[
+   {id:"condicao", t:"chips", l:"Há alguma condição de saúde ou diagnóstico que a escola deva conhecer?", o:SN, f:{when:["Sim"], l:"Qual?", t:"text"}},
+   {id:"cronicas", t:"text", l:"Doenças crónicas, crises, cirurgias ou internamentos importantes", h:"Opcional"},
+   {id:"medicacao", t:"chips", l:"Toma medicação ou precisa de cuidados durante o tempo de escola?", o:SN, f:{when:["Sim"], l:"Qual e a que horas?", t:"short"}},
+   {id:"visao", t:"chips", l:"Tem dificuldades de visão ou audição, ou usa óculos / aparelho auditivo?", o:SN, f:{when:["Sim"], l:"Quais?", t:"short"}},
+   {id:"ult_aval", t:"short", l:"Quando fez a última consulta de visão e de audição?", h:"Opcional — mês/ano aproximado"}
+ ]},
+ { title:"Acompanhamentos fora da escola", qs:[
+   {id:"acomp", t:"multi", l:"Que acompanhamentos teve ou tem?", h:"Pode escolher vários",
+     o:["Pediatria / desenvolvimento","Médico de família","Neuropediatria / pedopsiquiatria","Psicologia","Terapia da fala","Terapia ocupacional","Fisioterapia / psicomotricidade","Oftalmologia / otorrino / audiologia","Nutrição","Intervenção precoce","Apoio social / instituição","Outro","Nenhum"],
+     f:{whenNot:["Nenhum"], l:"Desde quando, com que frequência e se ainda acompanha (opcional)", t:"text"}},
+   {id:"relat_ext", t:"chips", l:"Tem relatórios ou avaliações feitos fora da escola?", o:SN, f:{when:["Sim"], l:"Pode entregar cópia à escola?", t:"chips", o:SN}},
+   {id:"comunidade", t:"chips", l:"Frequenta atividades de apoio ou terapia em instituições da comunidade?", o:SN, f:{when:["Sim"], l:"Quais?", t:"short"}},
+   {id:"contactar", t:"chips", l:"A escola pode contactar estes profissionais, com a sua autorização?", o:SN}
+ ]},
+ { title:"Comunicação e comportamento", qs:[
+   {id:"comunica", t:"multi", l:"Como comunica?", o:["Fala","Gestos","Imagens","Outros meios"]},
+   {id:"instrucoes", t:"chips", l:"Segue instruções?", o:["Facilmente","Com apoio","Com dificuldade"]},
+   {id:"autonomia", t:"chips", l:"Na higiene, a vestir-se e a comer, é…", o:["Autónomo(a)","Precisa de alguma ajuda","Precisa de muita ajuda"]},
+   {id:"mudancas", t:"chips", l:"Como reage a mudanças de rotina, barulho ou muita gente?", o:["Adapta-se bem","Fica um pouco inquieto(a)","Fica muito perturbado(a)"], f:{when:["Fica um pouco inquieto(a)","Fica muito perturbado(a)"], l:"Pode dar um exemplo? (opcional)", t:"short"}},
+   {id:"acalma", t:"short", l:"O que o(a) acalma quando está nervoso(a) ou frustrado(a)?", h:"Opcional"},
+   {id:"relacao", t:"chips", l:"Como se dá com colegas e adultos?", o:["Bem","Com algumas dificuldades","Com muitas dificuldades"]}
+ ]},
+ { title:"Aprendizagem em casa", qs:[
+   {id:"gosta_disc", t:"multi", l:"De que disciplinas mais gosta?", o:DISC},
+   {id:"dif_disc", t:"multi", l:"Em que disciplinas sente mais dificuldade?", o:DISC},
+   {id:"tpc", t:"chips", l:"Os trabalhos de casa…", o:["Faz sozinho(a)","Precisa de ajuda","Custam muito"]},
+   {id:"leitura", t:"chips", l:"Costuma ler em casa?", o:["Todos os dias","Às vezes","Quase nunca"]},
+   {id:"ecras", t:"chips", l:"Tempo de ecrãs por dia (televisão, tablet, telemóvel)", o:["Menos de 1 hora","1 a 2 horas","Mais de 2 horas"]},
+   {id:"fora", t:"multi", l:"Atividades fora da escola", o:["Desporto","Música","Associações","Outras","Nenhuma"]}
+ ]},
+ { title:"Gostos e preocupações", lead:"Todas as perguntas desta parte são opcionais.", qs:[
+   {id:"bom", t:"text", l:"Do que mais gosta e em que é bom(boa)?"},
+   {id:"feliz", t:"text", l:"O que o(a) deixa mais feliz na escola?"},
+   {id:"triste", t:"text", l:"O que o(a) preocupa ou deixa triste na escola?"},
+   {id:"diz", t:"text", l:"O que diz da escola quando lhe perguntam?"},
+   {id:"preocup", t:"text", l:"Quais são as suas principais preocupações?"},
+   {id:"escola_pode", t:"text", l:"O que pode a escola fazer para o(a) apoiar melhor?"},
+   {id:"expect", t:"text", l:"Que expectativas tem para o futuro dele(a)?"},
+   {id:"outras", t:"text", l:"Mais alguma coisa que queira partilhar?"}
+ ]},
+ { title:"Participação e autorizações", qs:[
+   {id:"reunioes", t:"chips", l:"Quer participar nas reuniões da equipa da escola sobre o seu educando?", o:SN},
+   {id:"contacto", t:"multi", l:"Como prefere ser contactado(a)?", o:["Presencialmente","Telefone","E-mail","Videochamada"]},
+   {id:"aut_docs", t:"chips", l:"Autoriza a escola a consultar a documentação anterior do aluno?", o:SN},
+   {id:"aut_prof", t:"chips", l:"Autoriza a escola a falar com os profissionais que o(a) acompanham?", o:SN},
+   {id:"declaro", t:"check", l:"Declaro que as informações são verdadeiras e sei que posso consultar o processo do meu educando e pedir a revisão das medidas a qualquer momento.", req:true}
+ ]}
+];
+
+/* ---------- Estado ---------- */
+const KEY = "inq_ee_rascunho_v1";
+const params = new URLSearchParams(location.search);
+const CODIGO = (params.get("c") || "").slice(0,40);
+let A = {};      // respostas
+let step = -1;   // -1 = introdução
+try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s) { A = s.A || {}; } } catch(e){}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify({A})); } catch(e){} };
+
+const app = document.getElementById("app");
+const nextBtn = document.getElementById("next");
+const backBtn = document.getElementById("back");
+const top = document.getElementById("top");
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+
+/* ---------- Componentes ---------- */
+function chips(opts, multi, get, set){
+  const box = el("div","chips");
+  opts.forEach(o=>{
+    const b = el("button","chip",o); b.type="button";
+    const cur = get();
+    b.setAttribute("aria-pressed", multi ? String((cur||[]).includes(o)) : String(cur===o));
+    b.onclick = ()=>{
+      if (multi){
+        let v = [...(get()||[])];
+        if (v.includes(o)) v = v.filter(x=>x!==o);
+        else {
+          // "Nenhum/Ninguém/Nenhuma" exclui as outras
+          const excl = ["Nenhum","Nenhuma","Ninguém"];
+          if (excl.includes(o)) v = [o]; else v = v.filter(x=>!excl.includes(x)).concat(o);
+        }
+        set(v.length ? v : undefined);
+      } else set(get()===o ? undefined : o);
+    };
+    box.appendChild(b);
+  });
+  return box;
+}
+function textInput(kind, get, set){
+  const i = kind==="text" ? el("textarea") : el("input");
+  if (kind!=="text") i.type="text";
+  i.value = get() || "";
+  i.oninput = ()=>{ set(i.value.trim() ? i.value : undefined, true); };
+  return i;
+}
+
+function renderQ(q){
+  const card = el("section","q");
+  if (q.t==="check"){
+    const lab = el("label","check");
+    const c = el("input"); c.type="checkbox"; c.checked = !!A[q.id];
+    c.onchange = ()=>{ A[q.id] = c.checked || undefined; save(); };
+    lab.append(c, el("span",null,q.l));
+    card.appendChild(lab); return card;
+  }
+  card.appendChild(el("p","label",q.l));
+  if (q.h) card.appendChild(el("p","hint",q.h));
+
+  const rerender = ()=>{ save(); card.replaceWith(renderQ(q)); };
+  const setMain = (v, typing)=>{ if (v===undefined) delete A[q.id]; else A[q.id]=v; if (typing) save(); else rerender(); };
+
+  if (q.t==="chips" || q.t==="multi"){
+    card.appendChild(chips(q.o, q.t==="multi", ()=>A[q.id], setMain));
+  } else if (q.t==="text" || q.t==="short"){
+    card.appendChild(textInput(q.t, ()=>A[q.id], setMain));
+  } else if (q.t==="marcos"){
+    const cur = A[q.id] || {};
+    q.rows.forEach(r=>{
+      const row = el("div","ms"); row.appendChild(el("div","mlabel",r));
+      row.appendChild(chips(q.o,false,()=>cur[r],(v)=>{ if(v===undefined) delete cur[r]; else cur[r]=v; A[q.id]=cur; rerender(); }));
+      card.appendChild(row);
+    });
+  }
+
+  // pergunta de seguimento
+  if (q.f){
+    const v = A[q.id];
+    const vals = Array.isArray(v) ? v : (v ? [v] : []);
+    const show = q.f.when ? vals.some(x=>q.f.when.includes(x)) : (vals.length && !vals.every(x=>q.f.whenNot.includes(x)));
+    const fid = q.id+"_det";
+    if (show){
+      const f = el("div","follow"); f.appendChild(el("div","flabel",q.f.l));
+      const setF = (nv, typing)=>{ if(nv===undefined) delete A[fid]; else A[fid]=nv; if (typing) save(); else rerender(); };
+      f.appendChild(q.f.t==="chips" ? chips(q.f.o,false,()=>A[fid],setF) : textInput(q.f.t,()=>A[fid],setF));
+      card.appendChild(f);
+    }
+  }
+  return card;
+}
+
+/* ---------- Ecrãs ---------- */
+function render(){
+  app.innerHTML=""; window.scrollTo(0,0);
+  if (step===-1){
+    top.hidden = true; backBtn.hidden = true; nextBtn.textContent = Object.keys(A).length ? "Continuar" : "Começar";
+    const d = el("div","intro");
+    d.appendChild(el("h1",null,"Conhecer melhor o seu educando"));
+    d.appendChild(el("p",null,"Caro(a) Encarregado(a) de Educação,"));
+    d.appendChild(el("p",null,"Este questionário ajuda a escola a conhecer melhor o seu educando: o que gosta, o que faz bem, as suas dificuldades e o seu percurso. Não pedimos nomes."));
+    d.appendChild(el("p",null,"A maior parte das respostas é só tocar numa opção. Responda apenas ao que achar importante — pode saltar qualquer pergunta."));
+    const n = el("div","note"); n.textContent = "Demora cerca de 10 minutos. As respostas ficam guardadas neste telemóvel até carregar em «Enviar», por isso pode parar e continuar mais tarde. A informação é confidencial e tratada com sigilo profissional.";
+    d.appendChild(n);
+    app.appendChild(d); return;
+  }
+  if (step===STEPS.length){
+    top.hidden = true; document.getElementById("nav").hidden = true;
+    const d = el("div","done");
+    d.appendChild(el("div","big","💚"));
+    d.appendChild(el("h1",null,"Muito obrigado!"));
+    d.appendChild(el("p","lead","As suas respostas foram enviadas ao professor. Já pode fechar esta página."));
+    app.appendChild(d); return;
+  }
+  const s = STEPS[step];
+  top.hidden = false; backBtn.hidden = false;
+  document.getElementById("stepName").textContent = s.title;
+  document.getElementById("stepCount").textContent = `${step+1} de ${STEPS.length}`;
+  document.getElementById("barFill").style.width = ((step+1)/STEPS.length*100)+"%";
+  nextBtn.textContent = step===STEPS.length-1 ? "Enviar respostas" : "Seguinte";
+  app.appendChild(el("h2",null,s.title));
+  if (s.lead) app.appendChild(el("p","lead",s.lead));
+  s.qs.forEach(q=>app.appendChild(renderQ(q)));
+  app.appendChild(el("div","err")).id="err";
+}
+
+/* ---------- Envio para o Firebase ---------- */
+function resumo(){
+  // lista legível: secção, pergunta, resposta
+  const out = [];
+  STEPS.forEach(s=>s.qs.forEach(q=>{
+    let v = A[q.id];
+    if (q.t==="marcos" && v) v = Object.entries(v).map(([k,x])=>`${k}: ${x}`).join("; ");
+    if (Array.isArray(v)) v = v.join(", ");
+    if (q.t==="check") v = v ? "Sim" : undefined;
+    const det = A[q.id+"_det"];
+    if (v===undefined && det===undefined) return;
+    out.push({ seccao:s.title, pergunta:q.l, resposta: [v, det].filter(Boolean).join(" — ") });
+  }));
+  return out;
+}
+
+async function enviar(){
+  if (firebaseConfig.apiKey.startsWith("COLE")) throw new Error("Falta colar a configuração do Firebase no ficheiro.");
+  const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+  const { getFirestore, collection, addDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+  const db = getFirestore(initializeApp(firebaseConfig));
+  await addDoc(collection(db, COLECAO), {
+    enviadoEm: serverTimestamp(),
+    codigo: CODIGO,
+    respostas: resumo(),
+    dados: JSON.parse(JSON.stringify(A))
+  });
+}
+
+nextBtn.onclick = async ()=>{
+  if (step === STEPS.length-1){
+    const err = document.getElementById("err");
+    if (!A.declaro){ err.textContent = "Falta confirmar a declaração (última caixa)."; return; }
+    nextBtn.disabled = true; backBtn.disabled = true; nextBtn.textContent = "A enviar…"; err.textContent = "";
+    try {
+      await enviar();
+      try { localStorage.removeItem(KEY); } catch(e){}
+      step++; render();
+    } catch(e){
+      err.textContent = "Não foi possível enviar. Verifique a ligação à internet e tente de novo. ("+e.message+")";
+      nextBtn.disabled = false; backBtn.disabled = false; nextBtn.textContent = "Enviar respostas";
+    }
+    return;
+  }
+  step++; render();
+};
+backBtn.onclick = ()=>{ if (step>-1){ step--; render(); } };
+render();
+</script>
+</body>
+</html>
