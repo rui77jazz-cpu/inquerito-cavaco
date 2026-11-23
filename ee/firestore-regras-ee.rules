@@ -1,8 +1,11 @@
-    // Colar DENTRO de: match /databases/{database}/documents { ... }
-    // (ao lado das regras do inquérito de setembro, sem as apagar)
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
     match /inqueritos_ee/{doc} {
       allow create: if request.resource.data.keys().hasOnly(['enviadoEm','codigo','respostas','dados'])
                     && request.resource.data.enviadoEm == request.time;
       allow read: if request.auth != null && request.auth.token.email == 'ee.professor@cavaco.pt';
       allow update, delete: if false;
     }
+  }
+}
