@@ -30,7 +30,7 @@
   .chips{display:flex;flex-wrap:wrap;gap:8px}
   .chip{border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:12px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer;min-height:46px}
   .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-  textarea,input[type=text]{width:100%;border:2px solid var(--line);border-radius:12px;padding:10px 12px;font:inherit;background:#fcfbf8;color:var(--ink)}
+  textarea,input[type=text],input[type=password]{width:100%;border:2px solid var(--line);border-radius:12px;padding:10px 12px;font:inherit;background:#fcfbf8;color:var(--ink)}
   textarea{min-height:76px;resize:vertical}
   textarea:focus,input:focus{outline:none;border-color:var(--accent)}
   .follow{margin-top:12px}
@@ -53,6 +53,19 @@
   .done{text-align:center;padding-top:60px}
   .done .big{font-size:64px}
   [hidden]{display:none!important}
+  .proflink{display:block;margin:40px auto 0;background:none;border:0;color:var(--muted);font:inherit;font-size:14px;text-decoration:underline;cursor:pointer}
+  .row{display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer}
+  .row b{font-size:16px} .row small{color:var(--muted)}
+  .tools{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+  .tools .btn{flex:0 0 auto;padding:10px 16px;min-height:44px}
+  .ans{margin:0 0 12px} .ans:last-child{margin:0}
+  .ans .pq{font-size:14px;color:var(--muted);font-weight:600}
+  .ans .pr{font-weight:700;white-space:pre-wrap}
+  .sec{font-size:18px;margin:0 0 12px;color:var(--accent)}
+  @media print{
+    body{background:#fff;font-size:12pt} .tools,nav.bottom,header.top{display:none!important}
+    .q{box-shadow:none;break-inside:avoid;border-color:#ccc} .wrap{padding-bottom:0}
+  }
 </style>
 </head>
 <body>
@@ -319,6 +332,8 @@ function render(){
     d.appendChild(el("p",null,"A maior parte das respostas é só tocar numa opção. Responda apenas ao que achar importante — pode saltar qualquer pergunta."));
     const n = el("div","note"); n.textContent = "Demora cerca de 10 minutos. As respostas ficam guardadas neste telemóvel até carregar em «Enviar», por isso pode parar e continuar mais tarde. A informação é confidencial e tratada com sigilo profissional.";
     d.appendChild(n);
+    const pl = el("button","proflink","Área do professor"); pl.type="button"; pl.onclick = profLogin;
+    d.appendChild(pl);
     app.appendChild(d); return;
   }
   if (step===STEPS.length){
@@ -357,11 +372,87 @@ function resumo(){
   return out;
 }
 
+const EMAIL_PROF = "prof@cavaco.pt";   // conta de professor no Firebase Authentication
+let FB = null;
+async function fb(){
+  if (FB) return FB;
+  const V = "https://www.gstatic.com/firebasejs/10.12.2/";
+  const a = await import(V+"firebase-app.js");
+  const f = await import(V+"firebase-firestore.js");
+  const u = await import(V+"firebase-auth.js");
+  const app_ = a.initializeApp(firebaseConfig);
+  FB = { db: f.getFirestore(app_), auth: u.getAuth(app_), f, u };
+  return FB;
+}
+
+/* ---------- Área do professor ---------- */
+function profScreen(){
+  app.innerHTML=""; window.scrollTo(0,0);
+  top.hidden = true; document.getElementById("nav").hidden = true;
+}
+function profLogin(){
+  profScreen();
+  app.appendChild(el("h1",null,"Área do professor"));
+  const c = el("section","q");
+  c.appendChild(el("p","label","Palavra-passe"));
+  const pw = el("input"); pw.type="password"; pw.autocomplete="current-password";
+  c.appendChild(pw);
+  const e = el("div","err");
+  const tools = el("div","tools");
+  const ok = el("button","btn pri","Entrar"), vol = el("button","btn sec","Voltar");
+  tools.append(ok, vol); c.append(e, tools); app.appendChild(c);
+  vol.onclick = ()=>{ document.getElementById("nav").hidden = false; step=-1; render(); };
+  const go = async ()=>{
+    ok.disabled = true; e.textContent = "";
+    try { const F = await fb(); await F.u.signInWithEmailAndPassword(F.auth, EMAIL_PROF, pw.value); profLista(); }
+    catch(err){ e.textContent = "Não foi possível entrar. Confirme a palavra-passe."; ok.disabled = false; }
+  };
+  ok.onclick = go; pw.onkeydown = ev=>{ if (ev.key==="Enter") go(); };
+  pw.focus();
+}
+const dataPT = ts => ts && ts.toDate ? ts.toDate().toLocaleString("pt-PT",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}) : "—";
+let LISTA = [];
+async function profLista(){
+  profScreen();
+  app.appendChild(el("h1",null,"Respostas recebidas"));
+  const tools = el("div","tools");
+  const sair = el("button","btn sec","Sair");
+  sair.onclick = async ()=>{ const F = await fb(); await F.u.signOut(F.auth); document.getElementById("nav").hidden=false; step=-1; render(); };
+  tools.appendChild(sair); app.appendChild(tools);
+  const info = el("p","lead","A carregar…"); app.appendChild(info);
+  try {
+    const F = await fb();
+    const snap = await F.f.getDocs(F.f.query(F.f.collection(F.db, COLECAO), F.f.orderBy("enviadoEm","desc")));
+    LISTA = snap.docs.map(d=>({id:d.id, ...d.data()}));
+  } catch(err){ info.textContent = "Não foi possível ler as respostas ("+err.code+"). Confirme as regras do Firestore."; return; }
+  info.textContent = LISTA.length ? `${LISTA.length} resposta(s). Toque numa para ver.` : "Ainda não há respostas.";
+  LISTA.forEach((r,i)=>{
+    const c = el("section","q"); const row = el("div","row");
+    const left = el("div"); left.appendChild(el("b",null, r.codigo ? "Código "+r.codigo : "Sem código"));
+    left.appendChild(el("br")); left.appendChild(el("small",null,"Enviado a "+dataPT(r.enviadoEm)+" · "+((r.dados&&r.dados.parentesco)||"")));
+    row.append(left, el("span",null,"›")); c.appendChild(row); c.onclick = ()=>profVer(i);
+    app.appendChild(c);
+  });
+}
+function profVer(i){
+  const r = LISTA[i]; profScreen();
+  const tools = el("div","tools");
+  const v = el("button","btn sec","‹ Lista"), p = el("button","btn pri","Imprimir / PDF");
+  v.onclick = profLista; p.onclick = ()=>window.print();
+  tools.append(v,p); app.appendChild(tools);
+  app.appendChild(el("h1",null,"Ficha de informação do EE"));
+  app.appendChild(el("p","lead",(r.codigo ? "Código "+r.codigo+" · " : "")+"Enviado a "+dataPT(r.enviadoEm)));
+  let cur=null, card=null;
+  (r.respostas||[]).forEach(x=>{
+    if (x.seccao!==cur){ cur=x.seccao; card=el("section","q"); card.appendChild(el("h3","sec",cur)); app.appendChild(card); }
+    const a = el("div","ans"); a.append(el("div","pq",x.pergunta), el("div","pr",x.resposta)); card.appendChild(a);
+  });
+}
+
 async function enviar(){
   if (firebaseConfig.apiKey.startsWith("COLE")) throw new Error("Falta colar a configuração do Firebase no ficheiro.");
-  const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
-  const { getFirestore, collection, addDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-  const db = getFirestore(initializeApp(firebaseConfig));
+  const { db, f } = await fb();
+  const { collection, addDoc, serverTimestamp } = f;
   await addDoc(collection(db, COLECAO), {
     enviadoEm: serverTimestamp(),
     codigo: CODIGO,
