@@ -372,7 +372,10 @@ function resumo(){
   return out;
 }
 
-const EMAIL_PROF = "prof@cavaco.pt";   // conta de professor no Firebase Authentication
+// Conta própria deste inquérito. É criada sozinha na primeira vez que o professor
+// escreve o código na "Área do professor" — esse primeiro código fica a valer.
+const EMAIL_PROF = "ee.professor@cavaco.pt";
+const senha = codigo => "ee-" + codigo.trim() + "-cavaco";   // permite códigos curtos (ex.: 1234)
 let FB = null;
 async function fb(){
   if (FB) return FB;
@@ -390,12 +393,17 @@ function profScreen(){
   app.innerHTML=""; window.scrollTo(0,0);
   top.hidden = true; document.getElementById("nav").hidden = true;
 }
-function profLogin(){
+async function profLogin(){
+  profScreen();
+  app.appendChild(el("p","lead","A abrir…"));
+  // se já entrou antes neste telemóvel/computador, vai direto às respostas
+  try { const F = await fb(); await F.auth.authStateReady();
+        if (F.auth.currentUser && F.auth.currentUser.email === EMAIL_PROF) return profLista(); } catch(e){}
   profScreen();
   app.appendChild(el("h1",null,"Área do professor"));
   const c = el("section","q");
-  c.appendChild(el("p","label","Palavra-passe"));
-  const pw = el("input"); pw.type="password"; pw.autocomplete="current-password";
+  c.appendChild(el("p","label","Código"));
+  const pw = el("input"); pw.type="password"; pw.inputMode="numeric"; pw.autocomplete="off";
   c.appendChild(pw);
   const e = el("div","err");
   const tools = el("div","tools");
@@ -404,8 +412,20 @@ function profLogin(){
   vol.onclick = ()=>{ document.getElementById("nav").hidden = false; step=-1; render(); };
   const go = async ()=>{
     ok.disabled = true; e.textContent = "";
-    try { const F = await fb(); await F.u.signInWithEmailAndPassword(F.auth, EMAIL_PROF, pw.value); profLista(); }
-    catch(err){ e.textContent = "Não foi possível entrar. Confirme a palavra-passe."; ok.disabled = false; }
+    if (!pw.value.trim()){ e.textContent = "Escreva o código."; ok.disabled = false; return; }
+    try {
+      const F = await fb();
+      try { await F.u.signInWithEmailAndPassword(F.auth, EMAIL_PROF, senha(pw.value)); }
+      catch(err){
+        // primeira vez: a conta ainda não existe → cria-a com este código
+        try { await F.u.createUserWithEmailAndPassword(F.auth, EMAIL_PROF, senha(pw.value)); }
+        catch(err2){ throw err2.code==="auth/email-already-in-use" ? new Error("codigo") : err2; }
+      }
+      profLista();
+    } catch(err){
+      e.textContent = err.message==="codigo" ? "Código errado." : "Não foi possível entrar ("+(err.code||err.message)+").";
+      ok.disabled = false;
+    }
   };
   ok.onclick = go; pw.onkeydown = ev=>{ if (ev.key==="Enter") go(); };
   pw.focus();
@@ -424,7 +444,7 @@ async function profLista(){
     const F = await fb();
     const snap = await F.f.getDocs(F.f.query(F.f.collection(F.db, COLECAO), F.f.orderBy("enviadoEm","desc")));
     LISTA = snap.docs.map(d=>({id:d.id, ...d.data()}));
-  } catch(err){ info.textContent = "Não foi possível ler as respostas ("+err.code+"). Confirme as regras do Firestore."; return; }
+  } catch(err){ info.textContent = "Ainda não consigo ler as respostas ("+err.code+"). Falta colar a regra no Firestore."; return; }
   info.textContent = LISTA.length ? `${LISTA.length} resposta(s). Toque numa para ver.` : "Ainda não há respostas.";
   LISTA.forEach((r,i)=>{
     const c = el("section","q"); const row = el("div","row");
